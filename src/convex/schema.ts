@@ -32,12 +32,25 @@ const schema = defineSchema(
       role: v.optional(roleValidator), // role of the user. do not remove
     }).index("email", ["email"]), // index for the email. do not remove or modify
 
-    // add other tables here
-
-    // tableName: defineTable({
-    //   ...
-    //   // table fields
-    // }).index("by_field", ["field"])
+    foodItems: defineTable({
+      title: v.string(),
+      description: v.string(),
+      category: v.string(),
+      quantity: v.number(),
+      unit: v.string(),
+      expiryDate: v.string(),
+      location: v.string(),
+      imageUrl: v.optional(v.string()),
+      allergens: v.array(v.string()),
+      donorId: v.id("users"),
+      status: v.union(v.literal("available"), v.literal("claimed"), v.literal("expired")),
+      claimedBy: v.optional(v.id("users")),
+      claimedAt: v.optional(v.number()),
+    })
+      .index("by_status", ["status"])
+      .index("by_donor", ["donorId"])
+      .index("by_claimed_by", ["claimedBy"])
+      .index("by_category", ["category"]),
   },
   {
     schemaValidation: false,
