@@ -2,6 +2,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Navigate } from "react-router";
+import { useLocation } from "react-router";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import FoodCard from "@/components/FoodCard";
 export default function Dashboard() {
   const { isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   
   const stats = useQuery(api.foodItems.getStats);
   const userDonations = useQuery(api.foodItems.getUserDonations);
@@ -27,7 +29,7 @@ export default function Dashboard() {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to={`/auth?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
   }
 
   const statCards = [

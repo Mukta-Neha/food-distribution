@@ -2,6 +2,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Navigate } from "react-router";
+import { useLocation } from "react-router";
 import Navbar from "@/components/Navbar";
 import FoodCard from "@/components/FoodCard";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ export default function Browse() {
   const { isLoading, isAuthenticated } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const location = useLocation();
   
   const foodItems = useQuery(api.foodItems.list, { 
     status: "available",
@@ -33,7 +35,7 @@ export default function Browse() {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to={`/auth?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
   }
 
   const categories = [

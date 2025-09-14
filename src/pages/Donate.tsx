@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Navigate, useNavigate } from "react-router";
+import { Navigate, useNavigate, useLocation } from "react-router";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { toast } from "sonner";
 export default function Donate() {
   const { isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const createFoodItem = useMutation(api.foodItems.create);
 
   const [formData, setFormData] = useState({
@@ -42,7 +43,7 @@ export default function Donate() {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to={`/auth?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
   }
 
   const categories = [

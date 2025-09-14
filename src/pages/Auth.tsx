@@ -18,6 +18,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { ArrowRight, Loader2, Mail, UserX, Lock } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { useLocation } from "react-router";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
@@ -28,6 +29,8 @@ interface AuthProps {
 function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const { isLoading: authLoading, isAuthenticated, signIn } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectParam = new URLSearchParams(location.search).get("redirect") || undefined;
   const [step, setStep] = useState<"signIn" | { email: string }>("signIn");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -39,10 +42,10 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      const redirect = redirectAfterAuth || "/";
+      const redirect = redirectParam || redirectAfterAuth || "/";
       navigate(redirect);
     }
-  }, [authLoading, isAuthenticated, navigate, redirectAfterAuth]);
+  }, [authLoading, isAuthenticated, navigate, redirectAfterAuth, redirectParam]);
 
   const handleEmailSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -72,9 +75,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       const formData = new FormData(event.currentTarget);
       await signIn("email-otp", formData);
 
-      console.log("signed in");
-
-      const redirect = redirectAfterAuth || "/";
+      const redirect = redirectParam || redirectAfterAuth || "/";
       navigate(redirect);
     } catch (error) {
       console.error("OTP verification error:", error);
@@ -90,10 +91,8 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
     setIsLoading(true);
     setError(null);
     try {
-      console.log("Attempting anonymous sign in...");
       await signIn("anonymous");
-      console.log("Anonymous sign in successful");
-      const redirect = redirectAfterAuth || "/";
+      const redirect = redirectParam || redirectAfterAuth || "/";
       navigate(redirect);
     } catch (error) {
       console.error("Guest login error:", error);
@@ -110,7 +109,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
     try {
       await signIn("anonymous");
       await demoLogin({ email: demoEmail.trim(), password: demoPassword });
-      const redirect = redirectAfterAuth || "/";
+      const redirect = redirectParam || redirectAfterAuth || "/";
       navigate(redirect);
     } catch (err) {
       setError("Failed to sign in. Please try again.");
