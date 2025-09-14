@@ -32,7 +32,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const setProfile = useMutation(api.users.setProfile);
+  const demoLogin = useMutation(api.demoAuth.demoLogin);
 
   const [demoEmail, setDemoEmail] = useState("");
   const [demoPassword, setDemoPassword] = useState("");
@@ -109,9 +109,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
     setError(null);
     try {
       await signIn("anonymous");
-      if (demoEmail.trim()) {
-        await setProfile({ email: demoEmail.trim() });
-      }
+      await demoLogin({ email: demoEmail.trim(), password: demoPassword });
       const redirect = redirectAfterAuth || "/";
       navigate(redirect);
     } catch (err) {

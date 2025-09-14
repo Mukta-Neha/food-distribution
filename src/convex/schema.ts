@@ -51,6 +51,13 @@ const schema = defineSchema(
       .index("by_donor", ["donorId"])
       .index("by_claimed_by", ["claimedBy"])
       .index("by_category", ["category"]),
+
+    // Add demo logins table to track demo email+password usage without storing passwords
+    demoLogins: defineTable({
+      userId: v.id("users"),
+      email: v.string(),
+      lastLoginAt: v.number(),
+    }).index("by_user", ["userId"]),
   },
   {
     schemaValidation: false,
