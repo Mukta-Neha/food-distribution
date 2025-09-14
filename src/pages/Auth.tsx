@@ -15,9 +15,11 @@ import {
 } from "@/components/ui/input-otp";
 
 import { useAuth } from "@/hooks/use-auth";
-import { ArrowRight, Loader2, Mail, UserX } from "lucide-react";
+import { ArrowRight, Loader2, Mail, UserX, Lock } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 interface AuthProps {
   redirectAfterAuth?: string;
@@ -30,6 +32,10 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const setProfile = useMutation(api.users.setProfile);
+
+  const [demoEmail, setDemoEmail] = useState("");
+  const [demoPassword, setDemoPassword] = useState("");
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
@@ -37,6 +43,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       navigate(redirect);
     }
   }, [authLoading, isAuthenticated, navigate, redirectAfterAuth]);
+
   const handleEmailSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
@@ -92,6 +99,23 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       console.error("Guest login error:", error);
       console.error("Error details:", JSON.stringify(error, null, 2));
       setError(`Failed to sign in as guest: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setIsLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    try {
+      await signIn("anonymous");
+      if (demoEmail.trim()) {
+        await setProfile({ email: demoEmail.trim() });
+      }
+      const redirect = redirectAfterAuth || "/";
+      navigate(redirect);
+    } catch (err) {
+      setError("Failed to sign in. Please try again.");
       setIsLoading(false);
     }
   };
@@ -154,7 +178,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                     <p className="mt-2 text-sm text-red-500">{error}</p>
                   )}
                   
-                  <div className="mt-4">
+                  <div className="mt-4 space-y-4">
                     <div className="relative">
                       <div className="absolute inset-0 flex items-center">
                         <span className="w-full border-t" />
@@ -165,11 +189,60 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                         </span>
                       </div>
                     </div>
-                    
+
+                    {/* Demo: Email + Password (frontend-only) */}
+                    <form onSubmit={handleDemoLogin} className="space-y-3">
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="demo@example.com"
+                          type="email"
+                          className="pl-9"
+                          value={demoEmail}
+                          onChange={(e) => setDemoEmail(e.target.value)}
+                          disabled={isLoading}
+                          required
+                        />
+                      </div>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Enter any password"
+                          type="password"
+                          className="pl-9"
+                          value={demoPassword}
+                          onChange={(e) => setDemoPassword(e.target.value)}
+                          disabled={isLoading}
+                          required
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={isLoading || !demoEmail || !demoPassword}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Signing in...
+                          </>
+                        ) : (
+                          <>
+                            Sign in (Demo)
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-xs text-muted-foreground text-center">
+                        Frontend-only demo: accepts any email/password and signs you in anonymously.
+                      </p>
+                    </form>
+
+                    {/* Existing guest option */}
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full mt-4"
+                      className="w-full"
                       onClick={handleGuestLogin}
                       disabled={isLoading}
                     >
